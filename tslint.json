@@ -1,0 +1,44 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint-config-prettier",
+    "tslint-consistent-codestyle",
+    "tslint-eslint-rules",
+    "tslint-react",
+    "tslint:latest"
+  ],
+  "linterOptions": {
+    "exclude": ["src/serviceWorker.js", "**/**.json"]
+  },
+  "jsRules": {},
+  "rules": {
+    "interface-name": [false, "always-prefix"],
+    "max-line-length": [true, 140],
+    "no-namespace": [true, "allow-declarations"],
+    "no-submodule-imports": false,
+    "no-var-requires": false,
+    "jsx-no-lambda": false,
+    "jsx-no-multiline-js": false,
+    "no-floating-promises": true,
+    "no-unexpected-multiline": "error",
+    "object-literal-key-quotes": false,
+    "semicolon": false,
+    "trailing-comma": [
+      false,
+      {
+        "multiline": "always",
+        "singleline": "never"
+      }
+    ],
+    "typedef": [true, "call-signature", "parameter"],
+    "variable-name": {
+      "options": ["ban-keywords", "check-format", "allow-pascal-case"]
+    },
+    "quotemark": false,
+    "jsdoc-format": false,
+    "no-shadowed-variable": false,
+    "no-string-literal": false,
+    "no-implicit-dependencies": false,
+    "no-consecutive-blank-lines": false
+  }
+}
