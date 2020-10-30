@@ -1,11 +1,14 @@
 import React from "react";
 import { Autocomplete, PlaceResult } from "../../Types/google.maps";
-import { getAutoCompleteResult } from "./Utils/getAutoCompleteResult";
+import {
+  componentForm,
+  getAutoCompleteResult,
+} from "./Utils/getAutoCompleteResult";
 import { loadScript } from "./Utils/loadScript";
 
 export type TAddressType = keyof typeof componentForm;
 
-export interface IAutocompleteResult {
+export interface IPartialAutocompleteResult {
   street_number: string | null;
   route: string | null;
   locality: string | null;
@@ -14,28 +17,14 @@ export interface IAutocompleteResult {
   postal_code: string | null;
 }
 
-export const initialAutocompleteResult = {
-  street_number: null,
-  route: null,
-  locality: null,
-  administrative_area_level_1: null,
-  country: null,
-  postal_code: null,
-};
-
-export const componentForm: IAutocompleteResult = {
-  street_number: "short_name",
-  route: "long_name",
-  locality: "long_name",
-  administrative_area_level_1: "short_name",
-  country: "long_name",
-  postal_code: "short_name",
-};
+interface IAutocompleteResult extends IPartialAutocompleteResult {
+  lat: number;
+  lng: number;
+  formattedAddress: string;
+}
 
 interface IAutocompleteAddressState {
   autoCompleteFieldValue: string;
-  lat: number;
-  lng: number;
   autocomplete?: Autocomplete;
   autocompleteResult?: IAutocompleteResult;
 }
@@ -51,16 +40,10 @@ export class AutocompleteAddress extends React.Component<
 
     this.state = {
       autoCompleteFieldValue: "",
-      lat: 0,
-      lng: 0,
     };
   }
 
   public onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (this.state.autoCompleteFieldValue.length > 5) {
-      this.initAutocomplete();
-    }
-
     this.setState({ autoCompleteFieldValue: e.target.value });
   };
 
@@ -83,23 +66,34 @@ export class AutocompleteAddress extends React.Component<
       : null;
 
     if (place) {
-      if (place.geometry) {
-        this.setState({ lat: place.geometry.location.lat() });
-        this.setState({ lng: place.geometry.location.lng() });
-      }
+      const lat = place.geometry ? place.geometry.location.lat() : 0;
+      const lng = place.geometry ? place.geometry.location.lng() : 0;
 
-      this.setState({ autocompleteResult: getAutoCompleteResult(place) });
+      const partialAutoCompleteResult = getAutoCompleteResult(place);
+
+      this.setState({
+        autoCompleteFieldValue: place.formatted_address,
+        autocompleteResult: {
+          ...partialAutoCompleteResult,
+          lat,
+          lng,
+          formattedAddress: place.formatted_address,
+        },
+      });
     }
   };
 
   componentWillMount(): void {
     loadScript(
-      `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&libraries=places`
+      `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&libraries=places`,
+      () => {
+        this.initAutocomplete();
+      }
     );
   }
 
   public render(): JSX.Element {
-    const { autocompleteResult, autoCompleteFieldValue, lat, lng } = this.state;
+    const { autocompleteResult, autoCompleteFieldValue } = this.state;
 
     return (
       <div className="container" style={{ marginTop: "15px" }}>
@@ -186,7 +180,7 @@ export class AutocompleteAddress extends React.Component<
                       className="form-control"
                       id="latitude"
                       disabled={true}
-                      value={lat}
+                      value={autocompleteResult.lat || ""}
                     />
                   </div>
                   <div className="col-md-6">
@@ -195,7 +189,7 @@ export class AutocompleteAddress extends React.Component<
                       className="form-control"
                       id="longitude"
                       disabled={true}
-                      value={lng}
+                      value={autocompleteResult.lng || ""}
                     />
                   </div>
                 </div>
